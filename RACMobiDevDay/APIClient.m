@@ -1,11 +1,11 @@
 #import "APIClient.h"
-#import <ReactiveCocoa/ReactiveCocoa.h>
+@import ReactiveObjC;
 
 static NSString * const APIClientDefaultEndpoint = @"http://localhost:4567";
 
 @interface APIClient ()
 
-@property (nonatomic, strong) AFHTTPRequestOperationManager *requestManager;
+@property (nonatomic, strong) AFHTTPSessionManager *requestManager;
 
 @end
 
@@ -25,7 +25,7 @@ static NSString * const APIClientDefaultEndpoint = @"http://localhost:4567";
 {
     self = [super init];
     if (self) {
-        self.requestManager = [[AFHTTPRequestOperationManager alloc] initWithBaseURL:[NSURL URLWithString:APIClientDefaultEndpoint]];
+        self.requestManager = [[AFHTTPSessionManager alloc] initWithBaseURL:[NSURL URLWithString:APIClientDefaultEndpoint]];
     }
     return self;
 }
@@ -35,20 +35,19 @@ static NSString * const APIClientDefaultEndpoint = @"http://localhost:4567";
                             lastName:(NSString *)lastName
 {
     return [RACSignal createSignal:^RACDisposable *(id<RACSubscriber> subscriber) {
-        AFHTTPRequestOperation *operation = [self.requestManager
-            POST:@"/accounts"
-            parameters:@{ @"first_name": firstName, @"last_name": lastName, @"email": email, }
-            success:^(AFHTTPRequestOperation *operation, id responseObject) {
-                [subscriber sendNext:responseObject];
-                [subscriber sendCompleted];
-            }
-            failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-                [subscriber sendError:[NSError errorWithDomain:@"com.example"
-                                 code:error.code
-                             userInfo:@{NSLocalizedFailureReasonErrorKey : error.localizedFailureReason ?: @"Failed to create account" }]];
-            }];
+        NSURLSessionDataTask *task = [self.requestManager POST:@"/accounts"
+                                                       parameters:@{ @"first_name": firstName, @"last_name": lastName, @"email": email }
+                                                          headers:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+                                            [subscriber sendNext:responseObject];
+                                            [subscriber sendCompleted];
+                                        } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
+                                            [subscriber sendError:[NSError errorWithDomain:@"com.example"
+                                                             code:error.code
+                                                         userInfo:@{NSLocalizedFailureReasonErrorKey : error.localizedFailureReason ?: @"Failed to create account" }]];
+                                        }];
+
         return [RACDisposable disposableWithBlock:^{
-            [operation cancel];
+            [task cancel];
         }];
     }];
 }

@@ -1,6 +1,6 @@
 #import "AppDelegate.h"
 #import "SignUpViewController.h"
-#import <AFNetworking/UIKit+AFNetworking.h>
+@import AFNetworking;
 
 @implementation AppDelegate
 

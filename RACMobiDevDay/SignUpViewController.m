@@ -1,7 +1,6 @@
 #import "SignUpViewController.h"
 #import "APIClient.h"
-#import <ReactiveCocoa/ReactiveCocoa.h>
-#import <ReactiveCocoa/UIButton+RACCommandSupport.h>
+@import ReactiveObjC;
 
 @interface SignUpViewController ()
 @property (weak, nonatomic) IBOutlet UITextField *firstNameField;
